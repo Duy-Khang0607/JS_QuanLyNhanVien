@@ -1,6 +1,11 @@
 var staffList = [];
-//---------------- THÊM NHÂN VIÊN -------------------
-function themNV() {
+// -------------- BUTTON THÊM NHAN VIÊN ------------------
+function themNhanVien() {
+  document.getElementById("btnCapNhat").style.display = "none";
+  document.getElementById("myForm").reset();
+}
+//----- THÊM NGƯỜI DÙNG KHI ĐIỀN XONG FORM ---------------
+function themNguoiDung() {
   // Kiểm tra form user nhập chưa
   var isFormValid = validateForm();
   if (!isFormValid) return;
@@ -47,34 +52,27 @@ function validateForm() {
   var position = document.getElementById("chucvu").value;
   var workHour = +document.getElementById("gioLam").value;
   var isValid = true;
-  // --- Check có nhập hay không ? và độ dài mã sv
-  // Tai khoan
-  isValid &= required(staffId, "tbTKNV");
-  // Ho ten
+  isValid &= required(staffId, "tbTKNV") && length(staffId, "tbTKNV", 4, 6);
   isValid &= required(fullName, "tbTen") && string(fullName, "tbTen");
-  // Email
   isValid &= required(email, "tbEmail") && patternEmail(email, "tbEmail");
-  // Mat khau
+  isValid &= required(date, "tbNgay") && patternDate(date, "tbNgay");
   isValid &=
     required(password, "tbMatKhau") && patternPassword(password, "tbMatKhau");
-  // // Date
-  // isValid &= required(date, "tbNgay") && patternDate(date, "tbNgay");
-  // Luong
   isValid &=
     required(totalSalary, "tbLuongCB") &&
     patternPoint(totalSalary, "tbLuongCB");
-  // // Chuc vu
-  // isValid &= required(position, "tbChucVu");
-  // Gio lam
+  isValid &= required(position, "tbChucVu");
   isValid &=
     required(workHour, "tbGiolam") && patternPoint(workHour, "tbGiolam");
+  console.log();
   return isValid;
 }
 // ---------------- IN RA DANH SÁCH NHÂN VIÊN ----------
-function renderStaff() {
+function renderStaff(data) {
+  if (!data) data = staffList;
   var tableHTML = "";
-  for (let i = 0; i < staffList.length; i++) {
-    var currentStaff = staffList[i];
+  for (let i = 0; i < data.length; i++) {
+    var currentStaff = data[i];
     tableHTML += `<tr>
         <td>${currentStaff.staffId}</td>
         <td>${currentStaff.fullName}</td>
@@ -179,11 +177,11 @@ function getUpdateStaff(staffId) {
   document.getElementById("luongCB").value = staff.totalSalary;
   document.getElementById("chucvu").value = staff.position;
   document.getElementById("gioLam").value = staff.workHour;
+  // HIỆN LẠI NÚT CẬT NHẬT
+  document.getElementById("btnCapNhat").style.display = "inline-block";
   //--- Ẩn nút thêm người dùng
   document.getElementById("btnThemNV").style.display = "none";
   document.getElementById("tknv").disabled = true;
-  document.getElementsByClassName("sp-thongbao").style.display = "none";
-  document.getElementById("myForm2").reset();
 }
 //---------------- UPDATE2 -----------------------
 function updateStaff() {
@@ -207,19 +205,16 @@ function updateStaff() {
   staff.workHour = workHour;
   renderStaff();
   setLocalStorage();
-  document.getElementById("btnDong").addEventListener("click", function () {
-    document.getElementById("btnThemNV").style.display = "inline-block";
-  });
   document.getElementById("tknv").disabled = false;
+  document.getElementById("btnThemNV").style.display = "inline-block";
   // Tắt modal khi nhấn nút cập nhật
-  document.getElementById("btnDong").click();
   document.getElementById("myForm").reset();
 }
 
 //-------------- VALIDATION----- : KIỂM TRA DATA ĐẦU VÀO
 // required : check user nhập chưa ?
 function required(val, spanID) {
-  if (val.length === 0) {
+  if ((val === 0) | (val.length === 0) | (val === "...")) {
     document.getElementById(spanID).innerHTML = "*Thông tin bắt buộc nhập";
     document.getElementById(spanID).style.display = "block";
     return false;
@@ -234,10 +229,11 @@ function length(val, spanID, min, max) {
     document.getElementById(
       spanID
     ).innerHTML = `*Độ dài phải từ ${min} tới ${max} kí tự`;
+    document.getElementById(spanID).style.display = "block";
     return false;
   }
   document.getElementById(spanID).innerHTML = "";
-  document.getElementById(spanID).style.display = "block";
+  document.getElementById(spanID).style.display = "none";
   return true;
 }
 //----------- Pattern check name ---------------
@@ -248,6 +244,7 @@ function string(val, spanID) {
     return true;
   }
   document.getElementById(spanID).innerHTML = `*Chỉ chấp nhận kí tự từ a -> z`;
+  document.getElementById(spanID).style.display = "block";
   return false;
 }
 //----------- Pattern check email ---------------
@@ -271,21 +268,21 @@ function patternPassword(val, spanID) {
   }
   document.getElementById(
     spanID
-  ).innerHTML = `*Tối thiểu tám ký tự, ít nhất một chữ cái, một số và một ký tự đặc biệt:`;
+  ).innerHTML = `*6-10 ký tự, ít nhất một chữ cái, một số và một ký tự đặc biệt:`;
   document.getElementById(spanID).style.display = "block";
   return false;
 }
 //----------- Pattern check date ---------------
-// function patternDate(val, spanID) {
-//   var pattern = /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/;
-//   if (pattern.test(val)) {
-//     document.getElementById(spanID).innerHTML = "";
-//     return true;
-//   }
-//   document.getElementById(spanID).innerHTML = `*Vui lòng chọn ngày`;
-//   document.getElementById(spanID).style.display = "block";
-//   return false;
-// }
+function patternDate(val, spanID) {
+  var pattern = /^(0?[1-9]|[12][0-9]|3[01])[\/\-](0?[1-9]|1[012])[\/\-]\d{4}$/;
+  if (pattern.test(val)) {
+    document.getElementById(spanID).innerHTML = "";
+    return true;
+  }
+  document.getElementById(spanID).innerHTML = `*Vui lòng chọn ngày`;
+  document.getElementById(spanID).style.display = "block";
+  return false;
+}
 //----------- Pattern check point ---------------
 function patternPoint(val, spanID) {
   var pattern = /^[0-9]+$/g;
@@ -294,6 +291,7 @@ function patternPoint(val, spanID) {
     return true;
   }
   document.getElementById(spanID).innerHTML = `*Vui lòng nhập số`;
+  document.getElementById(spanID).style.display = "block";
   return false;
 }
 //----------- Pattern check select option ---------------
@@ -311,21 +309,3 @@ function patternPoint(val, spanID) {
 window.onload = function () {
   getLocalStorage();
 };
-
-// function ex1() {
-//   var a = [1, 4, 2, 7, 5, 10, 9, 5];
-//   var obj = {};
-//   for (let i = 0; i < a.length; i++) {
-//     var currentNumber = a[i];
-//     var foundNumber = 10 - currentNumber;
-//     if (foundNumber in obj) {
-//       console.log(currentNumber, foundNumber);
-//       delete obj[foundNumber];
-//     } else {
-//       obj[currentNumber] = true;
-//     }
-//   }
-//   console.log("Khong co");
-//   console.log(obj);
-// }
-// ex1();

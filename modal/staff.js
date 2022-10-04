@@ -27,8 +27,9 @@ function Staff(
     if (this.workHour >= 192) return "Xuất sắc";
     else if (this.workHour >= 176) return "Giỏi";
     else if (this.workHour >= 160) return "Khá";
+    else if (this.workHour < 160) return "Trung bình";
     else {
-      return "Trung bình";
+      return "...";
     }
   };
 }
